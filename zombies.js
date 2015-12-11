@@ -29,6 +29,7 @@ function Item ( name ) {
  */
 
 function Weapon ( name, damage ) {
+  Item.call ( this, name );
   this.damage = damage;
 }
 
@@ -57,6 +58,7 @@ Item.constructor.prototype = Item;
  */
 
 function Food ( name, energy ) {
+  Item.call ( this, name );
   this.energy = energy;
 }
 
@@ -90,6 +92,23 @@ Item.constructor.prototype = Item;
  * @property {method} getMaxHealth         Returns private variable `maxHealth`.
  */
 
+function Player ( name, health, strength, speed ) {
+  var pack = [],
+      maxHealth = health;
+
+  this.name = name;
+  this.health = health;
+  this.strength = strength;
+  this.speed = speed;
+  this.isAlive = true;
+  this.equipped = false;
+  this.getPack = function () {
+    return pack;
+  };
+  this.getMaxHealth = function () {
+    return maxHealth;
+  };
+}
 
 /**
  * Player Class Method => checkPack()
@@ -103,6 +122,10 @@ Item.constructor.prototype = Item;
  * @name checkPack
  */
 
+Player.prototype.checkPack = function () {
+  var items = this.getPack();
+  console.log( items );
+};
 
 /**
  * Player Class Method => takeItem(item)
@@ -122,6 +145,17 @@ Item.constructor.prototype = Item;
  * @return {boolean} true/false     Whether player was able to store item in pack.
  */
 
+Player.prototype.takeItem = function ( item ) {
+  var items = this.getPack();
+  if ( items.length === 3 ) {
+    console.log ( "Pack full. Discard an item first." );
+    return false;
+  } else {
+    items.push( item );
+    console.log( this.name + " acquired" + item );
+    return true;
+  }
+};
 
 /**
  * Player Class Method => discardItem(item)
@@ -149,6 +183,18 @@ Item.constructor.prototype = Item;
  * @return {boolean} true/false     Whether player was able to remove item from pack.
  */
 
+Player.prototype.discardItem = function ( item ) {
+  var items = this.getPack();
+  var index = items.indexOf( item );
+  if ( index === -1 ) {
+    console.log( item + "does not exist." );
+    return false;
+  } else {
+    items.splice( index ,1);
+    console.log( this.name + "discarded" + item );
+    return true;
+  }
+};
 
 /**
  * Player Class Method => equip(itemToEquip)
@@ -170,6 +216,22 @@ Item.constructor.prototype = Item;
  * @param {Weapon} itemToEquip  The weapon item to equip.
  */
 
+Player.prototype.equip = function ( itemToEquip ) {
+  var items = this.getPack();
+  var index = items.indexOf( itemToEquip );
+  if ( itemToEquip instanceof Weapon ) {
+    if ( index !== -1 ) {
+      if ( this.equipped === false ) {
+        this.equipped = itemToEquip;
+        items.splice ( index, 1 );
+      } else {
+        items.splice ( index, 1, this.equipped );
+        this.equipped = itemToEquip;
+      }
+      return false;
+    }
+  }
+ };
 
 /**
  * Player Class Method => eat(itemToEat)
@@ -190,6 +252,21 @@ Item.constructor.prototype = Item;
  * @param {Food} itemToEat  The food item to eat.
  */
 
+Player.prototype.eat = function ( itemToEat ) {
+  var fullHealth = this.getMaxHealth();
+  var items = this.getPack();
+  var index = items.indexOf( itemToEat );
+  if ( itemToEat instanceof Food ) {
+    if ( index !== -1 ) {
+      items.splice ( index, 1);
+      this.health += itemToEat.energy;
+      if ( this.health > fullHealth ) {
+      this.health = fullHealth;
+      }
+      return false;
+    }
+  }
+};
 
 /**
  * Player Class Method => useItem(item)
@@ -204,6 +281,13 @@ Item.constructor.prototype = Item;
  * @param {Item/Weapon/Food} item   The item to use.
  */
 
+Player.prototype.useItem = function ( item ) {
+  if ( item instanceof Weapon ) {
+    this.equip ( item );
+  } else if ( item instanceof Food ) {
+    this.eat ( item );
+  }
+};
 
 /**
  * Player Class Method => equippedWith()
@@ -219,6 +303,15 @@ Item.constructor.prototype = Item;
  * @return {string/boolean}   Weapon name or false if nothing is equipped.
  */
 
+Player.prototype.equippedWith = function () {
+  var weapon = this.equipped;
+  if ( weapon === false ) {
+    console.log ( this.name + " has nothing equipped." );
+    return false;
+  } else {
+    return weapon.name;
+  }
+};
 
 /**
  * Class => Zombie(health, strength, speed)
